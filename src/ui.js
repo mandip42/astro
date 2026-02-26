@@ -54,6 +54,13 @@ const interpNak = document.getElementById("interp-nakshatra");
 const interpStrengths = document.getElementById("interp-planet-strengths");
 const interpYogas = document.getElementById("interp-yogas");
 
+const matchingSection = document.getElementById("matching-section");
+const matchingYourLagna = document.getElementById("matching-your-lagna");
+const matchingPartnerLagnaSelect = document.getElementById("matching-partner-lagna");
+const matchingBtn = document.getElementById("matching-btn");
+const matchingResultScore = document.getElementById("matching-result-score");
+const matchingResultText = document.getElementById("matching-result-text");
+
 let selectedPlace = null;
 let selectedTimezone = null;
 let currentKundali = null;
@@ -266,6 +273,7 @@ birthForm.addEventListener("submit", async e => {
     renderCharts(result);
     fillInterpretations(result, currentMD, currentAD);
     fillDebug(result, utcDate);
+    updateMatchingBase(result);
 
     summarySection.classList.remove("hidden");
     chartsSection.classList.remove("hidden");
@@ -323,6 +331,34 @@ function fillSummary(kundali, currentMD, currentAD) {
   const adPlanetDisp = currentAD ? (getPlanetName(currentAD.planet, true) || currentAD.planet) : "";
   summaryMD.textContent = currentMD ? t("mahadashaFormat").replace("%s", mdPlanetDisp) : "—";
   summaryAD.textContent = currentAD ? t("antardashaFormat").replace("%s", adPlanetDisp) : "—";
+}
+
+function updateMatchingBase(kundali) {
+  if (!matchingSection || !matchingYourLagna) return;
+  const lag = kundali.lagnaRashi;
+  const lagDisp = getRashiName(lag.index, true) || lag.name;
+  matchingYourLagna.textContent = `${lagDisp} (${lag.eng})`;
+  matchingSection.classList.remove("hidden");
+}
+
+function computeMatching() {
+  if (!currentKundali || !matchingPartnerLagnaSelect) return;
+  const value = matchingPartnerLagnaSelect.value;
+  if (value === "") {
+    matchingResultScore.textContent = "";
+    matchingResultText.textContent = "";
+    return;
+  }
+  const partnerIdx = parseInt(value, 10);
+  const myIdx = currentKundali.lagnaRashi.index;
+  if (!window.MarriageMatching) return;
+  const score = window.MarriageMatching.computeLagnaCompatibilityScore(myIdx, partnerIdx);
+  const band = window.MarriageMatching.getBand(score);
+  matchingResultScore.textContent = `${score} / 36`;
+  const myName = getRashiName(myIdx, true) || currentKundali.lagnaRashi.name;
+  const partnerName = getRashiName(partnerIdx, true) || window.VedicAstroEngine.RASHIS[partnerIdx].name;
+  const bandText = t(band.key);
+  matchingResultText.textContent = `${bandText} (${myName} & ${partnerName}).`;
 }
 
 function formatDeg(deg) {
@@ -631,6 +667,8 @@ window.onLanguageChange = function () {
   fillDashaTable(currentTimeline, currentMD);
   fillInterpretations(currentKundali, currentMD, currentAD);
   renderCharts(currentKundali);
+  updateMatchingBase(currentKundali);
+  computeMatching();
 };
 
 document.querySelectorAll(".lang-btn").forEach((btn) => {
@@ -638,6 +676,10 @@ document.querySelectorAll(".lang-btn").forEach((btn) => {
     if (window.i18n) window.i18n.setLanguage(btn.getAttribute("data-lang"));
   });
 });
+
+if (matchingBtn) {
+  matchingBtn.addEventListener("click", computeMatching);
+}
 
 window.addEventListener("load", () => {
   const testDateLocal = new Date(Date.UTC(1995, 8, 18, 6, 30));

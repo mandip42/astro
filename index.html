@@ -200,6 +200,51 @@
         </div>
       </section>
 
+      <section id="matching-section" class="card hidden">
+        <h2 data-i18n="matchingTitle">Marriage Matching (Lagna-based, 36 points)</h2>
+        <p class="matching-intro" data-i18n="matchingIntro">
+          Quick Lagna-based compatibility score on a 36-point scale. This is a simplified guide and not a full traditional kuṇḍali match.
+        </p>
+        <div class="matching-grid">
+          <div class="matching-col">
+            <div class="summary-item">
+              <span class="label" data-i18n="matchingYourLagnaLabel">Your Lagna</span>
+              <span id="matching-your-lagna" class="value"></span>
+            </div>
+          </div>
+          <div class="matching-col">
+            <div class="form-field">
+              <label for="matching-partner-lagna" data-i18n="matchingPartnerLagnaLabel">Partner Lagna</label>
+              <select id="matching-partner-lagna">
+                <option value="" selected disabled data-i18n="matchingSelectPlaceholder">Select partner Lagna…</option>
+                <option value="0">Aries (Mesha)</option>
+                <option value="1">Taurus (Vṛṣabha)</option>
+                <option value="2">Gemini (Mithuna)</option>
+                <option value="3">Cancer (Karka)</option>
+                <option value="4">Leo (Siṁha)</option>
+                <option value="5">Virgo (Kanyā)</option>
+                <option value="6">Libra (Tulā)</option>
+                <option value="7">Scorpio (Vṛścika)</option>
+                <option value="8">Sagittarius (Dhanu)</option>
+                <option value="9">Capricorn (Makara)</option>
+                <option value="10">Aquarius (Kumbha)</option>
+                <option value="11">Pisces (Mīna)</option>
+              </select>
+            </div>
+            <button type="button" id="matching-btn" class="matching-btn" data-i18n="matchingButton">
+              Calculate Compatibility
+            </button>
+          </div>
+          <div class="matching-col matching-result">
+            <div class="summary-item">
+              <span class="label" data-i18n="matchingScoreLabel">Compatibility Score</span>
+              <span id="matching-result-score" class="value"></span>
+            </div>
+            <p id="matching-result-text" class="matching-text"></p>
+          </div>
+        </div>
+      </section>
+
       <section id="debug-panel" class="card debug-card hidden">
         <h2 data-i18n="debugPanel">Debug Panel (Ctrl+Shift+D)</h2>
         <div class="debug-grid">
@@ -228,6 +273,7 @@
   <script src="./src/dasha.js"></script>
   <script src="./src/kundali-chart.js"></script>
   <script src="./src/i18n.js"></script>
+  <script src="./src/matching.js"></script>
   <script src="./src/ui.js"></script>
 </body>
 </html>

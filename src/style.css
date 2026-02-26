@@ -220,6 +220,33 @@ select:focus {
   background: #1a1a4e;
 }
 
+.matching-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.matching-intro {
+  font-size: 0.85rem;
+  color: #a89880;
+  margin-top: -0.3rem;
+  margin-bottom: 0.8rem;
+}
+
+.matching-btn {
+  margin-top: 0.6rem;
+}
+
+.matching-result .summary-item {
+  margin-bottom: 0.3rem;
+}
+
+.matching-text {
+  font-size: 0.9rem;
+  color: #d8c6a0;
+}
+
 .info-pill {
   min-height: 2.1rem;
   display: inline-flex;
