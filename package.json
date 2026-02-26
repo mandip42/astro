@@ -1,0 +1,9 @@
+{
+  "name": "vedic-astrology-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Static site — no build step'"
+  }
+}
+

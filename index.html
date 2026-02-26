@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vedic Astrology App — Lahiri (Sidereal)</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-root">
+    <header class="app-header">
+      <div class="header-row">
+        <div>
+          <h1 data-i18n="appTitle">Jyotiṣa Kundali — Lahiri (Sidereal)</h1>
+          <p class="subtitle" data-i18n="subtitle">Indian Vedic Astrology • Rāśi, Nakṣatra, Vimśottarī Daśā • Client-side only</p>
+        </div>
+        <div class="lang-switcher">
+          <button type="button" class="lang-btn" data-lang="en" aria-label="English">EN</button>
+          <span class="lang-sep" aria-hidden="true">|</span>
+          <button type="button" class="lang-btn" data-lang="as" aria-label="Assamese">অ</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="card input-card">
+        <h2 data-i18n="birthDetails">Birth Details</h2>
+        <form id="birth-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="native-name" data-i18n="nameOptional">Name (optional)</label>
+              <input type="text" id="native-name" data-i18n-placeholder="namePlaceholder" placeholder="e.g. Rajesh" autocomplete="given-name" />
+              <span class="field-hint" data-i18n="nameHint">For personalization only; chart is based on date, time &amp; place.</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="birth-date" data-i18n="dateOfBirth">Date of Birth</label>
+              <input type="date" id="birth-date" required />
+            </div>
+            <div class="form-field">
+              <label for="birth-time" data-i18n="timeOfBirth">Time of Birth</label>
+              <input type="time" id="birth-time" required />
+            </div>
+            <div class="form-field">
+              <label for="birth-am-pm">AM / PM</label>
+              <select id="birth-am-pm">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field autocomplete-field">
+              <label for="birth-place" data-i18n="placeOfBirth">Place of Birth</label>
+              <input type="text" id="birth-place" data-i18n-placeholder="placePlaceholder" placeholder="Start typing city or town…" autocomplete="off" />
+              <div id="place-suggestions" class="suggestions"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field readonly-field">
+              <label data-i18n="resolvedLocation">Resolved Location</label>
+              <div id="place-display" class="info-pill muted">No place selected</div>
+            </div>
+            <div class="form-field readonly-field">
+              <label data-i18n="timezone">Timezone</label>
+              <div id="timezone-display" class="info-pill muted">Unknown</div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="calculate-btn" data-i18n="calculateKundali">Calculate Kundali</button>
+            <button type="button" id="share-link-btn" class="secondary" data-i18n="copyShareLink">Copy Shareable Link</button>
+            <button type="button" id="print-btn" class="secondary" data-i18n="printPdf">Print / PDF</button>
+          </div>
+
+          <div id="loading-indicator" class="loading hidden">
+            <div class="spinner"></div>
+            <span data-i18n="loading">Computing precise planetary positions…</span>
+          </div>
+        </form>
+      </section>
+
+      <section id="summary-section" class="card summary-card hidden">
+        <h2 data-i18n="birthSummary">Birth Summary</h2>
+        <p id="summary-greeting" class="summary-greeting"></p>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="label" data-i18n="labelJanmaRashi">🌙 Janma Rāśi</span>
+            <span id="summary-moon-rashi" class="value"></span>
+          </div>
+          <div class="summary-item">
+            <span class="label" data-i18n="labelSuryaRashi">☀ Surya Rāśi (Sun sign)</span>
+            <span id="summary-sun-rashi" class="value"></span>
+            <span id="summary-sun-rashi-note" class="value-note"></span>
+          </div>
+          <div class="summary-item">
+            <span class="label" data-i18n="labelLagna">⬆ Lagna</span>
+            <span id="summary-lagna" class="value"></span>
+          </div>
+          <div class="summary-item">
+            <span class="label" data-i18n="labelJanmaNakshatra">⭐ Janma Nakṣatra</span>
+            <span id="summary-nakshatra" class="value"></span>
+          </div>
+          <div class="summary-item">
+            <span class="label" data-i18n="labelPada">Pada</span>
+            <span id="summary-pada" class="value"></span>
+          </div>
+          <div class="summary-item">
+            <span class="label" data-i18n="labelCurrentMD">⏳ Current Mahādaśā</span>
+            <span id="summary-md" class="value"></span>
+          </div>
+          <div class="summary-item">
+            <span class="label" data-i18n="labelCurrentAD">⏳ Current Antardaśā</span>
+            <span id="summary-ad" class="value"></span>
+          </div>
+        </div>
+      </section>
+
+      <section id="charts-section" class="card charts-card hidden">
+        <h2 data-i18n="kundaliCharts">Kundali Charts</h2>
+        <div class="charts-grid">
+          <div>
+            <h3 data-i18n="d1Rashi">D1 — Rāśi (Birth Chart)</h3>
+            <div id="rashi-chart-container" class="chart-container"></div>
+          </div>
+          <div>
+            <h3 data-i18n="d9Navamsa">D9 — Navāṁśa</h3>
+            <div id="navamsa-chart-container" class="chart-container"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="positions-section" class="card hidden">
+        <h2 data-i18n="grahaPositions">Graha Positions</h2>
+        <div class="table-wrapper">
+          <table id="planet-table">
+            <thead>
+              <tr>
+                <th data-i18n="planet">Planet</th>
+                <th data-i18n="rashi">Rāśi</th>
+                <th data-i18n="deg">Deg°</th>
+                <th data-i18n="nakshatra">Nakṣatra</th>
+                <th data-i18n="pada">Pada</th>
+                <th data-i18n="house">House</th>
+                <th>R?</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="dasha-section" class="card hidden">
+        <h2 data-i18n="vimshottariDasha">Vimśottarī Daśā</h2>
+        <div id="dasha-timeline" class="dasha-timeline"></div>
+        <div class="table-wrapper">
+          <table id="dasha-table">
+            <thead>
+              <tr>
+                <th data-i18n="mahadasha">Mahādaśā</th>
+                <th data-i18n="start">Start</th>
+                <th data-i18n="end">End</th>
+                <th data-i18n="years">Years</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="interpretation-section" class="card hidden">
+        <h2 data-i18n="basicInterpretations">Basic Interpretations</h2>
+        <div class="interpretation-grid">
+          <div>
+            <h3 data-i18n="lagnaRashi">Lagna Rāśi</h3>
+            <p id="interp-lagna"></p>
+          </div>
+          <div>
+            <h3 data-i18n="janmaRashiMoon">Janma Rāśi (Moon Sign)</h3>
+            <p id="interp-moon"></p>
+          </div>
+          <div>
+            <h3 data-i18n="janmaNakshatraDesc">Janma Nakṣatra</h3>
+            <p id="interp-nakshatra"></p>
+          </div>
+          <div>
+            <h3 data-i18n="planetaryStrengths">Planetary Strengths</h3>
+            <ul id="interp-planet-strengths"></ul>
+          </div>
+          <div>
+            <h3 data-i18n="yogas">Yogas</h3>
+            <ul id="interp-yogas"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="debug-panel" class="card debug-card hidden">
+        <h2 data-i18n="debugPanel">Debug Panel (Ctrl+Shift+D)</h2>
+        <div class="debug-grid">
+          <div><span>Julian Day:</span> <code id="debug-jd"></code></div>
+          <div><span>ΔT (sec):</span> <code id="debug-deltat"></code></div>
+          <div><span>Ayanāṁśa (°):</span> <code id="debug-ayanamsa"></code></div>
+          <div><span>Tropical Moon (°):</span> <code id="debug-moon-tropical"></code></div>
+          <div><span>Sidereal Moon (°):</span> <code id="debug-moon-sidereal"></code></div>
+          <div><span>Nakṣatra Index:</span> <code id="debug-nakshatra-idx"></code></div>
+          <div><span>Deg in Nakṣatra:</span> <code id="debug-nakshatra-deg"></code></div>
+          <div><span>GMST (h):</span> <code id="debug-gmst"></code></div>
+          <div><span>RAMC (°):</span> <code id="debug-ramc"></code></div>
+          <div><span>Ascendant (°):</span> <code id="debug-asc"></code></div>
+          <div><span>Timezone Offset (h):</span> <code id="debug-tz"></code></div>
+          <div><span>UTC Birth Time:</span> <code id="debug-utc"></code></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span data-i18n="footer">Made for traditional Jyotiṣa study. All calculations run locally in your browser.</span>
+    </footer>
+  </div>
+
+  <script src="./src/astro-engine.js"></script>
+  <script src="./src/dasha.js"></script>
+  <script src="./src/kundali-chart.js"></script>
+  <script src="./src/i18n.js"></script>
+  <script src="./src/ui.js"></script>
+</body>
+</html>
+
