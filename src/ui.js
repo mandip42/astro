@@ -55,8 +55,8 @@ const interpStrengths = document.getElementById("interp-planet-strengths");
 const interpYogas = document.getElementById("interp-yogas");
 
 const matchingSection = document.getElementById("matching-section");
-const matchingYourLagna = document.getElementById("matching-your-lagna");
-const matchingPartnerLagnaSelect = document.getElementById("matching-partner-lagna");
+const matchingYourNakshatra = document.getElementById("matching-your-nakshatra");
+const matchingPartnerNakshatraSelect = document.getElementById("matching-partner-nakshatra");
 const matchingBtn = document.getElementById("matching-btn");
 const matchingResultScore = document.getElementById("matching-result-score");
 const matchingResultText = document.getElementById("matching-result-text");
@@ -334,29 +334,30 @@ function fillSummary(kundali, currentMD, currentAD) {
 }
 
 function updateMatchingBase(kundali) {
-  if (!matchingSection || !matchingYourLagna) return;
-  const lag = kundali.lagnaRashi;
-  const lagDisp = getRashiName(lag.index, true) || lag.name;
-  matchingYourLagna.textContent = `${lagDisp} (${lag.eng})`;
+  if (!matchingSection || !matchingYourNakshatra) return;
+  const nk = kundali.moonNakshatra;
+  const nkDisp = getNakshatraName(nk.index, true) || nk.name;
+  matchingYourNakshatra.textContent = `${nkDisp} (${nk.pada} ${t("pada").toLowerCase()})`;
   matchingSection.classList.remove("hidden");
 }
 
 function computeMatching() {
-  if (!currentKundali || !matchingPartnerLagnaSelect) return;
-  const value = matchingPartnerLagnaSelect.value;
+  if (!currentKundali || !matchingPartnerNakshatraSelect) return;
+  const value = matchingPartnerNakshatraSelect.value;
   if (value === "") {
     matchingResultScore.textContent = "";
     matchingResultText.textContent = "";
     return;
   }
   const partnerIdx = parseInt(value, 10);
-  const myIdx = currentKundali.lagnaRashi.index;
+  const myIdx = currentKundali.moonNakshatra.index;
   if (!window.MarriageMatching) return;
-  const score = window.MarriageMatching.computeLagnaCompatibilityScore(myIdx, partnerIdx);
+  const score = window.MarriageMatching.getNakshatraCompatibilityScore(myIdx, partnerIdx);
   const band = window.MarriageMatching.getBand(score);
   matchingResultScore.textContent = `${score} / 36`;
-  const myName = getRashiName(myIdx, true) || currentKundali.lagnaRashi.name;
-  const partnerName = getRashiName(partnerIdx, true) || window.VedicAstroEngine.RASHIS[partnerIdx].name;
+  const myName = getNakshatraName(myIdx, true) || currentKundali.moonNakshatra.name;
+  const partnerNak = window.VedicAstroEngine.NAKSHATRAS[partnerIdx];
+  const partnerName = getNakshatraName(partnerIdx, true) || (partnerNak ? partnerNak.name : "");
   const bandText = t(band.key);
   matchingResultText.textContent = `${bandText} (${myName} & ${partnerName}).`;
 }
@@ -660,6 +661,8 @@ function parseInitialParamsAndCalculate() {
 }
 
 window.onLanguageChange = function () {
+  const opt = matchingPartnerNakshatraSelect && matchingPartnerNakshatraSelect.querySelector('option[value=""]');
+  if (opt) opt.textContent = t("matchingSelectPlaceholder");
   if (!currentKundali || !currentTimeline) return;
   const { currentMD, currentAD } = window.VimshottariDasha.findCurrentDasha(currentTimeline, new Date());
   fillSummary(currentKundali, currentMD, currentAD);
@@ -681,7 +684,30 @@ if (matchingBtn) {
   matchingBtn.addEventListener("click", computeMatching);
 }
 
+function fillPartnerNakshatraSelect() {
+  if (!matchingPartnerNakshatraSelect || !window.VedicAstroEngine || !window.VedicAstroEngine.NAKSHATRAS) return;
+  const nakshatras = window.VedicAstroEngine.NAKSHATRAS;
+  const placeholder = matchingPartnerNakshatraSelect.querySelector('option[value=""]');
+  matchingPartnerNakshatraSelect.innerHTML = "";
+  if (placeholder) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.disabled = true;
+    opt.selected = true;
+    opt.setAttribute("data-i18n", "matchingSelectPlaceholder");
+    opt.textContent = t("matchingSelectPlaceholder");
+    matchingPartnerNakshatraSelect.appendChild(opt);
+  }
+  for (let i = 0; i < nakshatras.length; i++) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = nakshatras[i].name;
+    matchingPartnerNakshatraSelect.appendChild(opt);
+  }
+}
+
 window.addEventListener("load", () => {
+  fillPartnerNakshatraSelect();
   const testDateLocal = new Date(Date.UTC(1995, 8, 18, 6, 30));
   const year = testDateLocal.getUTCFullYear();
   const month = testDateLocal.getUTCMonth() + 1;
