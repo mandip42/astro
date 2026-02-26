@@ -1,14 +1,33 @@
 "use strict";
 
 // Nakshatra-based marriage compatibility (Girl star × Boy star → 0–36).
-// Uses a 27×27 matrix. Same nakshatra = 0 (Nadi); Gana mismatch (Deva–Rakshasa) = reduced; else by distance.
-// You can replace NAKSHATRA_SCORE_MATRIX with the exact table from your chart if you have the numbers.
+// Loads koota/scores.json from the chart in the koota folder; falls back to formula if not available.
 
-// Gana: 0=Deva, 1=Manushya, 2=Rakshasa (for Ashtakoota Gana 6 points)
+let SCORE_MATRIX = null;
+fetch("koota/scores.json")
+  .then((r) => r.json())
+  .then((data) => {
+    if (Array.isArray(data) && data.length === 27 && data.every((row) => Array.isArray(row) && row.length === 27)) {
+      SCORE_MATRIX = data;
+    }
+  })
+  .catch(() => {});
+
+// Gana: 0=Deva, 1=Manushya, 2=Rakshasa (fallback formula)
 const GANA = [
   0, 1, 1, 1, 1, 2, 1, 0, 2, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0
-  // Ashwini,Bharani,Krittika,Rohini,Mrigasira,Ardra,Punarvasu,Pushya,Ashlesha,Magha,P.Phalguni,U.Phalguni,Hasta,Chitra,Swati,Vishakha,Anuradha,Jyeshta,Mula,P.Ashadha,U.Ashadha,Shravana,Dhanishta,Shatabhisha,P.Bhadra,U.Bhadra,Revati
 ];
+
+function formulaScore(i, j) {
+  if (i === j) return 0;
+  const gi = GANA[i] ?? 1;
+  const gj = GANA[j] ?? 1;
+  if ((gi === 0 && gj === 2) || (gi === 2 && gj === 0)) return 22;
+  let diff = Math.abs(i - j);
+  if (diff > 13) diff = 27 - diff;
+  if (diff === 9 || diff === 18) return 8;
+  return Math.max(0, Math.min(36, 36 - 2 * diff));
+}
 
 function getNakshatraCompatibilityScore(girlNakIndex, boyNakIndex) {
   if (
@@ -21,23 +40,10 @@ function getNakshatraCompatibilityScore(girlNakIndex, boyNakIndex) {
   }
   const i = girlNakIndex;
   const j = boyNakIndex;
-  // Same nakshatra → 0 (Nadi dosh)
-  if (i === j) return 0;
-  // Gana: Deva–Rakshasa = 0 points for Gana (6 lost)
-  const ganaDeva = 0, ganaRakshasa = 2;
-  const gi = GANA[i] ?? 1;
-  const gj = GANA[j] ?? 1;
-  if ((gi === ganaDeva && gj === ganaRakshasa) || (gi === ganaRakshasa && gj === ganaDeva)) {
-    return Math.max(0, 36 - 6 - 8); // 22, or use a lower value if you prefer
+  if (SCORE_MATRIX && SCORE_MATRIX[i] && Number.isFinite(SCORE_MATRIX[i][j])) {
+    return SCORE_MATRIX[i][j];
   }
-  // Cyclic distance (1–13)
-  let diff = Math.abs(i - j);
-  if (diff > 13) diff = 27 - diff;
-  // 6th / 12th nakshatra apart (inimical) → lower score
-  if (diff === 9 || diff === 18) return 8;
-  // Scale by distance: 36 - 2*diff (so 34, 32, ..., 10)
-  const raw = 36 - 2 * diff;
-  return Math.max(0, Math.min(36, raw));
+  return formulaScore(i, j);
 }
 
 function getBand(score) {
